@@ -32,7 +32,7 @@ See `docs/ARCHITECTURE.md` and `docs/DEPENDENCY_MAPPING.md` for details.
 1. Clone the repo and open the project root.
 2. **Backend (Docker):**
    - From repo root: `docker compose build && docker compose up -d`
-   - Health checks: `curl http://localhost:8000/health` (auth), `http://localhost:8001/health` (tenant), etc.
+   - Health checks: `curl http://localhost:8000/health` (auth), `http://localhost:8001/health` (tenant), etc. Postgres is published on host port 5434 (if 5432 is in use).
 3. **Frontend:**
    - `cd frontend && npm install && npm run dev`
    - Open http://localhost:3000 (landing, login, signup, dashboard).
@@ -57,6 +57,8 @@ See `docs/ARCHITECTURE.md` and `docs/DEPENDENCY_MAPPING.md` for details.
 
 ## Debugging Tips
 
+- **Docker build fails with "no such host" or "failed to resolve source metadata" for docker.io:** Your machine cannot reach Docker Hub (DNS or network). Fix DNS/connectivity, or in Docker Desktop disable proxy (Settings -> Resources -> Proxies) if you are not behind a corporate proxy. As a workaround, run backend services locally with Python and frontend with `npm run dev` (no Docker).
+- **"error getting credentials - docker-credential-desktop: executable file not found":** Docker is set to use the Desktop credential helper but it is not in your PATH. Either add Docker Desktop's bin directory to PATH, or temporarily remove `credsStore` from `~/.docker/config.json` (a backup can be saved in this repo as `.docker-config.json.bak`). Restore with `scripts/local/restore_docker_config.sh` if you saved a backup.
 - Backend logs: `docker compose logs -f auth` (or tenant, crm, etc.).
 - Frontend: browser devtools and `npm run dev` terminal output.
 - DB: connect with `psql` to the Compose Postgres (user `neuroops`, password `neuroops_local`, db `neuroops`) or use the URL from Compose env.

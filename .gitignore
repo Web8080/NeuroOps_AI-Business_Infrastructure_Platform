@@ -1,3 +1,8 @@
+# Local Docker config backup (used when fixing credsStore)
+.docker-config.json.bak
+.docker-config.json.patch
+.docker-tmp
+
 # Env and secrets
 .env
 .env.local

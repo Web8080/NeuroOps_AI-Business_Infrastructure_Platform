@@ -1,0 +1,169 @@
+# NeuroOps local stack. All env vars are placeholders; copy .env.example to .env per service if needed.
+# Build from repo root: docker compose build
+# Run: docker compose up -d
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: neuroops
+      POSTGRES_PASSWORD: neuroops_local
+      POSTGRES_DB: neuroops
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U neuroops"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 5
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_CONTROLLER_QUORUM_VOTE: 1
+      KAFKA_CONTROLLER_LISTENER_NAMES: PLAINTEXT
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  auth:
+    build:
+      context: .
+      dockerfile: services/auth/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://neuroops:neuroops_local@postgres:5432/neuroops
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET_KEY: placeholder-change-in-production
+      JWT_ACCESS_EXPIRY_DAYS: "7"
+      FRONTEND_URL: http://localhost:3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  tenant:
+    build:
+      context: .
+      dockerfile: services/tenant/Dockerfile
+    ports:
+      - "8001:8001"
+    environment:
+      DATABASE_URL: postgresql://neuroops:neuroops_local@postgres:5432/neuroops
+      AUTH_SERVICE_URL: http://auth:8000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      auth:
+        condition: service_started
+
+  crm:
+    build:
+      context: .
+      dockerfile: services/crm/Dockerfile
+    ports:
+      - "8002:8002"
+    environment:
+      DATABASE_URL: postgresql://neuroops:neuroops_local@postgres:5432/neuroops
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  inventory:
+    build:
+      context: .
+      dockerfile: services/inventory/Dockerfile
+    ports:
+      - "8003:8003"
+    environment:
+      DATABASE_URL: postgresql://neuroops:neuroops_local@postgres:5432/neuroops
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  accounting:
+    build:
+      context: .
+      dockerfile: services/accounting/Dockerfile
+    ports:
+      - "8004:8004"
+    environment:
+      DATABASE_URL: postgresql://neuroops:neuroops_local@postgres:5432/neuroops
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  billing:
+    build:
+      context: .
+      dockerfile: services/billing/Dockerfile
+    ports:
+      - "8005:8005"
+    environment:
+      DATABASE_URL: postgresql://neuroops:neuroops_local@postgres:5432/neuroops
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      FRONTEND_URL: http://localhost:3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  analytics:
+    build:
+      context: .
+      dockerfile: services/analytics/Dockerfile
+    ports:
+      - "8006:8006"
+    environment:
+      DATABASE_URL: postgresql://neuroops:neuroops_local@postgres:5432/neuroops
+      REDIS_URL: redis://redis:6379/0
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+  ai:
+    build:
+      context: .
+      dockerfile: services/ai/Dockerfile
+    ports:
+      - "8007:8007"
+    environment:
+      DATABASE_URL: postgresql://neuroops:neuroops_local@postgres:5432/neuroops
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres_data: {}

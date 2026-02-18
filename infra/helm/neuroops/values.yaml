@@ -1,0 +1,31 @@
+# Helm values. Override env and image in staging/prod.
+
+global:
+  imageRegistry: ""
+  env:
+    DATABASE_URL: ""  # from external secret
+    REDIS_URL: ""
+    JWT_SECRET_KEY: ""
+
+auth:
+  replicaCount: 1
+  image:
+    repository: PLACEHOLDER_ECR/auth
+    tag: latest
+  service:
+    port: 8000
+
+tenant:
+  replicaCount: 1
+  image:
+    repository: PLACEHOLDER_ECR/tenant
+    tag: latest
+
+crm:
+  replicaCount: 1
+  image:
+    repository: PLACEHOLDER_ECR/crm
+    tag: latest
+
+# Add other services (inventory, accounting, billing, analytics, ai) similarly.
+# Prometheus and Grafana: use community charts; set scrape targets to neuroops/*.

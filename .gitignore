@@ -1,0 +1,43 @@
+# Env and secrets
+.env
+.env.local
+.env.*.local
+*.tfvars
+!*.tfvars.example
+!terraform.tfvars.example
+
+# Python
+__pycache__
+*.py[cod]
+.venv
+venv
+*.egg-info
+.pytest_cache
+.coverage
+htmlcov
+
+# Node / Next
+node_modules
+.next
+frontend/.next
+frontend/node_modules
+npm-debug.log*
+
+# IDE and OS
+.idea
+.vscode
+.DS_Store
+
+# Terraform and K8s
+*.tfstate
+*.tfstate.*
+.terraform/
+
+# Playwright
+playwright-report
+test-results
+
+# Build and logs
+*.log
+dist
+build

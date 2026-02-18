@@ -1,0 +1,23 @@
+# Prometheus scrape config snippet for NeuroOps services.
+# Add to your Prometheus config or use with Helm values.
+
+# scrape_configs:
+#   - job_name: 'neuroops-auth'
+#     static_configs:
+#       - targets: ['auth.neuroops.svc:8000']
+#     metrics_path: /metrics
+#   - job_name: 'neuroops-tenant'
+#     static_configs:
+#       - targets: ['tenant.neuroops.svc:8001']
+#   - job_name: 'neuroops-crm'
+#     static_configs:
+#       - targets: ['crm.neuroops.svc:8002']
+#   - job_name: 'neuroops-ai'
+#     static_configs:
+#       - targets: ['ai.neuroops.svc:8007']
+#   - job_name: 'redis'
+#     static_configs:
+#       - targets: ['redis:6379']
+#   - job_name: 'postgres'
+#     static_configs:
+#       - targets: ['postgres-exporter:9187']

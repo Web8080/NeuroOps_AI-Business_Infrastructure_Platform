@@ -1,0 +1,2 @@
+# Minimal deps for neuroops_common (no DB/HTTP by default)
+# Services that use FastAPI will add their own deps.

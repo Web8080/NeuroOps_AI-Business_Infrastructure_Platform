@@ -1,0 +1,68 @@
+# CI: build, test, optional push. No automatic deploy to AWS.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  REGISTRY: PLACEHOLDER_ECR_OR_DOCKERHUB
+
+jobs:
+  backend-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install auth deps and test
+        run: |
+          pip install -r services/auth/requirements.txt
+          pip install pytest httpx
+          cd services/auth && python -m pytest tests/ -v
+      - name: Install tenant deps and test
+        run: |
+          pip install -r services/tenant/requirements.txt
+          pip install pytest httpx
+          cd services/tenant && python -m pytest tests/ -v
+
+  frontend-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+      - run: cd frontend && npm ci || npm install
+      - run: cd frontend && npm run lint
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+      - run: cd frontend && npm ci || npm install
+      - run: cd frontend && npx playwright install --with-deps chromium
+      - run: cd frontend && npm run test:e2e
+    # Start frontend only; backend 501 is acceptable for E2E scaffold
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build auth image
+        run: docker build -f services/auth/Dockerfile -t neuroops-auth:test .
+      - name: Build tenant image
+        run: docker build -f services/tenant/Dockerfile -t neuroops-tenant:test .
+    # Push to registry only when branch is main and user has configured secrets (ECR login, etc.). Do not add deploy step without approval.

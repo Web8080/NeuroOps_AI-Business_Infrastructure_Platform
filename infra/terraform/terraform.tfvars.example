@@ -1,0 +1,6 @@
+# Copy to terraform.tfvars and fill. Never commit terraform.tfvars.
+# aws_region       = "us-east-1"
+# environment     = "dev"
+# project_name    = "neuroops"
+# db_username     = "neuroops"
+# db_password     = "CHANGE_ME"

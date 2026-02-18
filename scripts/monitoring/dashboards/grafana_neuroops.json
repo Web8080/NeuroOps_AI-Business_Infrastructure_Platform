@@ -1,0 +1,7 @@
+{
+  "title": "NeuroOps Overview",
+  "description": "Placeholder. Import into Grafana and add panels for service health, API latency, queue depth, AI performance.",
+  "panels": [],
+  "schemaVersion": 38,
+  "version": 1
+}

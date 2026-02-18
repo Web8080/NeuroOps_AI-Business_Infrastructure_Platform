@@ -1,0 +1,3 @@
+Sample document for RAG testing. Replace with real tenant documents.
+NeuroOps helps SMEs manage CRM, inventory, accounting, and analytics in one place.
+AI features include RAG over company documents, chatbots, and demand forecasting.
